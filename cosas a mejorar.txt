@@ -1,0 +1,19 @@
+movilidad del personaje 
+fuente de letra
+achicar personaje
+animaciones
+
+
+
+arreglar menu con tipografia nueva, (ajustar a la mitad de la pantalla)
+implementar colisiones (con mis tiles)
+cambiar mi personaje por un tile (cargar 16 o 32, solo dejar 2 personajes en pantalla)
+
+*extra*
+fisica gravedad, saltos.
+
+
+
+
+git statu (para saber el estado)
+git add . (para agregar al repositorio)

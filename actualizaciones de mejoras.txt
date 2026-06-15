@@ -1,0 +1,3 @@
+funciones 
+achicar personaje
+mapa
