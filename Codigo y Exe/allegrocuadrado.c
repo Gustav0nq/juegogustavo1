@@ -7,6 +7,7 @@
 #include <time.h>
 #include <allegro5/allegro_font.h>
 #include <allegro5/allegro_ttf.h>   
+
 //Modularización de los .h
 #include "struct.h"
 #include "define.h"
@@ -60,10 +61,10 @@ int main()
         return 1;
     }
 
-    ALLEGRO_BITMAP *tilePiso = cargar_imagen("assets/imgs/roca1.png");
-    ALLEGRO_BITMAP *tileLava = cargar_imagen("assets/imgs/roca2.png");
+    ALLEGRO_BITMAP *tilePiso35 = cargar_imagen("assets/imgs/carpetatile/tiles/Tile_35.png");
+    ALLEGRO_BITMAP *tilePiso02 = cargar_imagen("assets/imgs/carpetatile/tiles/Tile_02.png");
 
-    if (tilePiso == NULL || tileLava == NULL)
+    if (tilePiso35 == NULL || tilePiso02 == NULL)
     {
         return 1;
     }
@@ -99,7 +100,7 @@ int main()
     int totalOpciones = 3;
 
     Mono monos[CANT_MONOS];
-    inicializar_monos(monos, ANCHO, ALTO);
+    inicializar_monos_sobre_piso(monos, mapa);
 
     int monoActivo = 0;
     int mostrarRectangulo = 1;
@@ -224,7 +225,7 @@ while (cerrar == 0)
 
     if (pantallaActual == PANTALLA_JUEGO)
     {
-        mover_mono(&monos[monoActivo],tecla_arriba,tecla_abajo,tecla_izquierda,tecla_derecha,&mostrarRectangulo);
+        mover_mono(&monos[monoActivo], tecla_arriba, tecla_abajo, tecla_izquierda, tecla_derecha, &mostrarRectangulo, mapa);
     }
     limitar_mono_pantalla(&monos[monoActivo], ANCHO, ALTO);
     al_clear_to_color(al_map_rgb(0, 0, 0)); 
@@ -236,7 +237,7 @@ while (cerrar == 0)
     }
     else if (pantallaActual == PANTALLA_JUEGO)
     {
-        dibujar_mapa(mapa, tilePiso, tileLava);
+        dibujar_mapa(mapa, tilePiso35, tilePiso02);
         dibujar_monos(personaje, monos);
         if (mostrarRectangulo == 1)
         {
@@ -266,8 +267,8 @@ while (cerrar == 0)
 }   
 
     al_destroy_font(fuente);
-    al_destroy_bitmap(tileLava);
-    al_destroy_bitmap(tilePiso);
+    al_destroy_bitmap(tilePiso35);
+    al_destroy_bitmap(tilePiso02);
     al_destroy_bitmap(fondo);
     al_destroy_bitmap(personaje);
     al_destroy_event_queue(cola);

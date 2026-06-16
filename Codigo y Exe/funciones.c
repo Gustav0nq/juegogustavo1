@@ -264,7 +264,8 @@ void dibujar_monos(ALLEGRO_BITMAP *personaje, Mono monos[])
 }
 
 //inicializar monos
-void inicializar_monos(Mono monos[], int anchoPantalla, int altoPantalla)
+
+    void inicializar_monos_sobre_piso(Mono monos[], char mapa[MAPA_FILAS][MAPA_COLUMNAS])
 {
     srand(time(0));
 
@@ -275,35 +276,103 @@ void inicializar_monos(Mono monos[], int anchoPantalla, int altoPantalla)
         monos[i].velocidad = velocidadmono;
         monos[i].vida = 200;
 
-        monos[i].x = rand() % (anchoPantalla - (int)monos[i].ancho);
-        monos[i].y = rand() % (altoPantalla - (int)monos[i].alto);
+        int encontrado = 0;
+
+        while (encontrado == 0)
+        {
+            int columna = rand() % MAPA_COLUMNAS;
+
+            for (int fila = 1; fila < MAPA_FILAS; fila++)
+            {
+                if (mapa[fila][columna] == '#' && mapa[fila - 1][columna] == '.')
+                {
+                    monos[i].x = columna * TAM_TILE;
+                    monos[i].y = fila * TAM_TILE - monos[i].alto;
+
+                    encontrado = 1;
+                    break;
+                }
+            }
+        }
     }
 }
 
-void mover_mono(Mono *mono, int arriba, int abajo, int izquierda, int derecha, int *mostrarRectangulo)
+//detectar bloque
+int es_tile_solido(char bloque)
 {
-    if (arriba == 1)
+    if (bloque == '#' || bloque == '~')
     {
-        mono->y = mono->y - mono->velocidad;
-        *mostrarRectangulo = 0;
+        return 1;
     }
 
-    if (abajo == 1)
+    return 0;
+}
+
+int mono_colisiona_con_mapa(char mapa[MAPA_FILAS][MAPA_COLUMNAS], float x, float y, float ancho, float alto)
+{
+    int columnaIzquierda = x / TAM_TILE;
+    int columnaDerecha = (x + ancho - 1) / TAM_TILE;
+    int filaArriba = y / TAM_TILE;
+    int filaAbajo = (y + alto - 1) / TAM_TILE;
+
+    if (columnaIzquierda < 0 || columnaDerecha >= MAPA_COLUMNAS ||
+        filaArriba < 0 || filaAbajo >= MAPA_FILAS)
     {
-        mono->y = mono->y + mono->velocidad;
-        *mostrarRectangulo = 0;
+        return 1;
     }
+
+    for (int fila = filaArriba; fila <= filaAbajo; fila++)
+    {
+        for (int columna = columnaIzquierda; columna <= columnaDerecha; columna++)
+        {
+            if (es_tile_solido(mapa[fila][columna]))
+            {
+                return 1;
+            }
+        }
+    }
+
+    return 0;
+}
+
+
+void mover_mono(Mono *mono, int arriba, int abajo, int izquierda, int derecha, int *mostrarRectangulo, char mapa[MAPA_FILAS][MAPA_COLUMNAS])
+{
+    float nuevaX = mono->x;
+    float nuevaY = mono->y;
 
     if (izquierda == 1)
     {
-        mono->x = mono->x - mono->velocidad;
+        nuevaX = mono->x - mono->velocidad;
         *mostrarRectangulo = 0;
     }
 
     if (derecha == 1)
     {
-        mono->x = mono->x + mono->velocidad;
+        nuevaX = mono->x + mono->velocidad;
         *mostrarRectangulo = 0;
+    }
+
+    if (!mono_colisiona_con_mapa(mapa, nuevaX, mono->y, mono->ancho, mono->alto))
+    {
+        mono->x = nuevaX;
+    }
+
+    if (arriba == 1)
+    {
+        nuevaY = mono->y - mono->velocidad;
+        *mostrarRectangulo = 0;
+    }
+
+    if (abajo == 1)
+    {
+        nuevaY = mono->y + mono->velocidad;
+        *mostrarRectangulo = 0;
+    }
+
+    if (!mono_colisiona_con_mapa(mapa, mono->x, nuevaY, mono->ancho, mono->alto))
+    {
+        mono->y = nuevaY;
     }
 }
 
