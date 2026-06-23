@@ -1,6 +1,11 @@
 #ifndef struct_h
 #define struct_h
 
+typedef enum {
+    PERSONAJE_MONO,
+    PERSONAJE_DOS
+} TipoPersonaje;
+
 //estructura monos
 typedef struct{
     float x;
@@ -8,7 +13,13 @@ typedef struct{
     float ancho;
     float alto;
     float velocidad;
+
+    float velocidadY;
+    int enSuelo;
+
     int vida;
+
+    int tipoPersonaje;
 }Mono;
 
 //estructura pantallas

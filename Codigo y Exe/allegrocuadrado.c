@@ -44,10 +44,10 @@ int main()
 
     if (personaje == NULL)
     {
-    printf("No se pudo cargar la imagen assets/imgs/mono.png\n");
-    al_destroy_event_queue(cola);
-    al_destroy_display(display);
-    return 1;
+        printf("No se pudo cargar la imagen assets/imgs/mono.png\n");
+        al_destroy_event_queue(cola);
+        al_destroy_display(display);
+        return 1;
     }
 
     ALLEGRO_BITMAP *fondo = al_load_bitmap("assets/imgs/fondolava1.png");
@@ -77,6 +77,7 @@ int main()
         al_destroy_bitmap(personaje);
         al_destroy_event_queue(cola);
         al_destroy_display(display);
+
         return 1;
     }
 
@@ -103,12 +104,12 @@ int main()
     inicializar_monos_sobre_piso(monos, mapa);
 
     int monoActivo = 0;
-    int mostrarRectangulo = 1;
+    int mostrarRectangulo = 0;
 
-    int tecla_arriba = 0;
-    int tecla_abajo = 0;
+    int salto = 0;
     int tecla_izquierda = 0;
     int tecla_derecha = 0;
+
     // 5. Ciclo principal del programa
 while (cerrar == 0)
 {
@@ -174,12 +175,9 @@ while (cerrar == 0)
             {
                 if (evento.keyboard.keycode == ALLEGRO_KEY_UP)
                 {
-                    tecla_arriba = 1;
+                    salto= 1;
                 }
-                else if (evento.keyboard.keycode == ALLEGRO_KEY_DOWN)
-                {
-                    tecla_abajo = 1;
-                }
+            
                 else if (evento.keyboard.keycode == ALLEGRO_KEY_LEFT)
                 {
                     tecla_izquierda = 1;
@@ -189,30 +187,25 @@ while (cerrar == 0)
                     tecla_derecha = 1;
                 }
                 else if (evento.keyboard.keycode == ALLEGRO_KEY_TAB)
-                {
+                {   
                     monoActivo++;
 
-                    if (monoActivo >= CANT_MONOS)
-                    {
-                        monoActivo = 0;
-                    }
-
-                    mostrarRectangulo = 1;
+                if (monoActivo >= CANT_MONOS)
+                {
+                    monoActivo = 0;
+                }
+                }
+                else if (evento.keyboard.keycode == ALLEGRO_KEY_H)
+                {
+                    mostrarRectangulo = !mostrarRectangulo;
                 }
             }
         }
 
         if (evento.type == ALLEGRO_EVENT_KEY_UP)
         {
-            if (evento.keyboard.keycode == ALLEGRO_KEY_UP)
-            {
-                tecla_arriba = 0;
-            }
-            else if (evento.keyboard.keycode == ALLEGRO_KEY_DOWN)
-            {
-                tecla_abajo = 0;
-            }
-            else if (evento.keyboard.keycode == ALLEGRO_KEY_LEFT)
+  
+            if (evento.keyboard.keycode == ALLEGRO_KEY_LEFT)
             {
                 tecla_izquierda = 0;
             }
@@ -225,9 +218,10 @@ while (cerrar == 0)
 
     if (pantallaActual == PANTALLA_JUEGO)
     {
-        mover_mono(&monos[monoActivo], tecla_arriba, tecla_abajo, tecla_izquierda, tecla_derecha, &mostrarRectangulo, mapa);
+        mover_mono(&monos[monoActivo], salto, tecla_izquierda, tecla_derecha, mapa);
+        limitar_mono_pantalla(&monos[monoActivo], ANCHO, ALTO);
+        salto = 0;
     }
-    limitar_mono_pantalla(&monos[monoActivo], ANCHO, ALTO);
     al_clear_to_color(al_map_rgb(0, 0, 0)); 
     dibujar_fondo(fondo, ANCHO, ALTO);
 
@@ -241,13 +235,7 @@ while (cerrar == 0)
         dibujar_monos(personaje, monos);
         if (mostrarRectangulo == 1)
         {
-            al_draw_rectangle(
-            monos[monoActivo].x,
-            monos[monoActivo].y,
-            monos[monoActivo].x + monos[monoActivo].ancho,
-            monos[monoActivo].y + monos[monoActivo].alto,
-            al_map_rgb(0, 255, 0),
-            3);
+            dibujar_hitbox_mono(monos[monoActivo]);
         }
     }
     else if (pantallaActual == PANTALLA_AJUSTES)

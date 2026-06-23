@@ -249,11 +249,17 @@ void dibujar_menu(ALLEGRO_FONT *fuente, int ANCHO, int opcionMenu)
 
 
 //dibujar monos
-void dibujar_monos(ALLEGRO_BITMAP *personaje, Mono monos[])
+void dibujar_monos(ALLEGRO_BITMAP *imagenesPersonajes[], Mono monos[])
 {
     for(int i = 0; i < CANT_MONOS; i++)
     {
-        al_draw_scaled_bitmap(personaje, 0, 0, al_get_bitmap_width(personaje), al_get_bitmap_height(personaje),
+        ALLEGRO_BITMAP *imagenActual = imagenesPersonajes[monos[i].tipoPersonaje];
+
+        al_draw_scaled_bitmap(
+            imagenActual,
+            0, 0,
+            al_get_bitmap_width(imagenActual),
+            al_get_bitmap_height(imagenActual),
             monos[i].x,
             monos[i].y,
             monos[i].ancho,
@@ -274,7 +280,20 @@ void dibujar_monos(ALLEGRO_BITMAP *personaje, Mono monos[])
         monos[i].ancho = anchomono;
         monos[i].alto = altomono;
         monos[i].velocidad = velocidadmono;
+
+        monos[i].velocidadY = 0;
+        monos[i].enSuelo = 1;
+
         monos[i].vida = 200;
+
+        if (i == 0)
+        {
+            monos[i].tipoPersonaje = PERSONAJE_MONO;
+        }
+        else
+        {
+            monos[i].tipoPersonaje = PERSONAJE_DOS;
+        }
 
         int encontrado = 0;
 
@@ -336,43 +355,107 @@ int mono_colisiona_con_mapa(char mapa[MAPA_FILAS][MAPA_COLUMNAS], float x, float
 }
 
 
-void mover_mono(Mono *mono, int arriba, int abajo, int izquierda, int derecha, int *mostrarRectangulo, char mapa[MAPA_FILAS][MAPA_COLUMNAS])
+//mover mono
+// Mueve el mono usando una hitbox más pequeña que el sprite.
+// La imagen del mono sigue midiendo 72x64,
+// pero las colisiones usan HITBOX_MONO_ANCHO x HITBOX_MONO_ALTO.
+void mover_mono(Mono *mono, int salto, int izquierda, int derecha, char mapa[MAPA_FILAS][MAPA_COLUMNAS])
 {
     float nuevaX = mono->x;
-    float nuevaY = mono->y;
 
     if (izquierda == 1)
     {
         nuevaX = mono->x - mono->velocidad;
-        *mostrarRectangulo = 0;
     }
 
     if (derecha == 1)
     {
         nuevaX = mono->x + mono->velocidad;
-        *mostrarRectangulo = 0;
     }
 
-    if (!mono_colisiona_con_mapa(mapa, nuevaX, mono->y, mono->ancho, mono->alto))
+    // Posición real de la hitbox
+    float hitboxX = nuevaX + HITBOX_MONO_OFFSET_X;
+    float hitboxY = mono->y + HITBOX_MONO_OFFSET_Y;
+
+    // Colisión horizontal usando la hitbox roja
+    if (!mono_colisiona_con_mapa(
+            mapa,
+            hitboxX,
+            hitboxY,
+            HITBOX_MONO_ANCHO,
+            HITBOX_MONO_ALTO
+        ))
     {
         mono->x = nuevaX;
     }
 
-    if (arriba == 1)
+    // Salto
+    if (salto == 1 && mono->enSuelo == 1)
     {
-        nuevaY = mono->y - mono->velocidad;
-        *mostrarRectangulo = 0;
+        mono->velocidadY = velocidad_salto;
+        mono->enSuelo = 0;
     }
 
-    if (abajo == 1)
+    // Gravedad
+    mono->velocidadY += gravedad;
+
+    if (mono->velocidadY > velocidad_caida)
     {
-        nuevaY = mono->y + mono->velocidad;
-        *mostrarRectangulo = 0;
+        mono->velocidadY = velocidad_caida;
     }
 
-    if (!mono_colisiona_con_mapa(mapa, mono->x, nuevaY, mono->ancho, mono->alto))
+    float nuevaY = mono->y + mono->velocidadY;
+
+    hitboxX = mono->x + HITBOX_MONO_OFFSET_X;
+    hitboxY = nuevaY + HITBOX_MONO_OFFSET_Y;
+
+    // Colisión vertical usando la hitbox roja
+    if (!mono_colisiona_con_mapa(
+            mapa,
+            hitboxX,
+            hitboxY,
+            HITBOX_MONO_ANCHO,
+            HITBOX_MONO_ALTO
+        ))
     {
         mono->y = nuevaY;
+        mono->enSuelo = 0;
+    }
+    else
+    {
+        // Si venía cayendo, lo dejamos justo arriba del piso
+        if (mono->velocidadY > 0)
+        {
+            while (!mono_colisiona_con_mapa(
+                        mapa,
+                        mono->x + HITBOX_MONO_OFFSET_X,
+                        mono->y + 1 + HITBOX_MONO_OFFSET_Y,
+                        HITBOX_MONO_ANCHO,
+                        HITBOX_MONO_ALTO
+                    ))
+            {
+                mono->y += 1;
+            }
+
+            mono->enSuelo = 1;
+        }
+
+        // Si venía subiendo, lo dejamos justo debajo del bloque
+        if (mono->velocidadY < 0)
+        {
+            while (!mono_colisiona_con_mapa(
+                        mapa,
+                        mono->x + HITBOX_MONO_OFFSET_X,
+                        mono->y - 1 + HITBOX_MONO_OFFSET_Y,
+                        HITBOX_MONO_ANCHO,
+                        HITBOX_MONO_ALTO
+                    ))
+            {
+                mono->y -= 1;
+            }
+        }
+
+        mono->velocidadY = 0;
     }
 }
 
@@ -398,4 +481,34 @@ void limitar_mono_pantalla(Mono *mono, int anchoPantalla, int altoPantalla)
     {
         mono->y = altoPantalla - mono->alto;
     }
+}
+
+//funcion hitbox
+// Dibuja la hitbox real que se ocupa para chocar con el mapa.
+// Verde = tamaño completo del sprite.
+// Rojo = hitbox real usada para colisiones.
+void dibujar_hitbox_mono(Mono mono)
+{
+    float hitboxX = mono.x + HITBOX_MONO_OFFSET_X;
+    float hitboxY = mono.y + HITBOX_MONO_OFFSET_Y;
+
+    // Rectángulo verde: tamaño completo del sprite
+    al_draw_rectangle(
+        mono.x,
+        mono.y,
+        mono.x + mono.ancho,
+        mono.y + mono.alto,
+        al_map_rgb(0, 255, 0),
+        1
+    );
+
+    // Rectángulo rojo: hitbox real
+    al_draw_rectangle(
+        hitboxX,
+        hitboxY,
+        hitboxX + HITBOX_MONO_ANCHO,
+        hitboxY + HITBOX_MONO_ALTO,
+        al_map_rgb(255, 0, 0),
+        3
+    );
 }

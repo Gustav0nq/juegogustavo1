@@ -1,3 +1,9 @@
-funciones 
-achicar personaje
-mapa
+tile de lava, sprites de animaciones de lava
+sprites del personaje 
+objetos, armas
+
+
+resolucion pantalla
+
+1920 ancho X 1080 alto
+60 tiles X 34

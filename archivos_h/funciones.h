@@ -27,7 +27,10 @@ void dibujar_fondo(ALLEGRO_BITMAP *fondo, int ANCHO, int ALTO);
 
 void dibujar_menu(ALLEGRO_FONT *fuente, int ANCHO, int opcionMenu);
 
-void dibujar_monos(ALLEGRO_BITMAP *personaje, Mono monos[]);
+void dibujar_monos(ALLEGRO_BITMAP *imagenesPersonajes[], Mono monos[]);
+
+//funcion hitbox
+void dibujar_hitbox_mono(Mono mono);
 
 void inicializar_monos_sobre_piso(Mono monos[], char mapa[MAPA_FILAS][MAPA_COLUMNAS]);
 
@@ -35,7 +38,7 @@ int es_tile_solido(char bloque);
 
 int mono_colisiona_con_mapa(char mapa[MAPA_FILAS][MAPA_COLUMNAS], float x, float y, float ancho, float alto);
 
-void mover_mono(Mono *mono, int arriba, int abajo, int izquierda, int derecha, int *mostrarRectangulo, char mapa[MAPA_FILAS][MAPA_COLUMNAS]);
+void mover_mono(Mono *mono, int salto, int izquierda, int derecha, char mapa[MAPA_FILAS][MAPA_COLUMNAS]);
 
 void limitar_mono_pantalla(Mono *mono, int anchoPantalla, int altoPantalla);
 #endif
