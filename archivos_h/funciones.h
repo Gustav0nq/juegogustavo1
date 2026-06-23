@@ -27,7 +27,23 @@ void dibujar_fondo(ALLEGRO_BITMAP *fondo, int ANCHO, int ALTO);
 
 void dibujar_menu(ALLEGRO_FONT *fuente, int ANCHO, int opcionMenu);
 
-void dibujar_monos(ALLEGRO_BITMAP *imagenesPersonajes[], Mono monos[]);
+void dibujar_monos(
+    ALLEGRO_BITMAP *spritesPersonajes[CANT_TIPOS_PERSONAJES][CANT_ANIMACIONES][MAX_FRAMES_ANIMACION],
+    int cantidadFrames[CANT_TIPOS_PERSONAJES][CANT_ANIMACIONES],
+    Mono monos[]
+);
+
+void cambiar_animacion_mono(Mono *mono, int nuevaAnimacion);
+
+void actualizar_animacion_mono(
+    Mono *mono,
+    int izquierda,
+    int derecha,
+    int abajo,
+    int golpe,
+    int cantidadFrames[CANT_TIPOS_PERSONAJES][CANT_ANIMACIONES]
+);
+
 
 //funcion hitbox
 void dibujar_hitbox_mono(Mono mono);

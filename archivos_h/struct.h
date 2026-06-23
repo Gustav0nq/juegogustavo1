@@ -6,6 +6,16 @@ typedef enum {
     PERSONAJE_DOS
 } TipoPersonaje;
 
+typedef enum {
+    ANIM_IDLE,
+    ANIM_CAMINAR,
+    ANIM_CORRER,
+    ANIM_SALTAR,
+    ANIM_AGACHADO,
+    ANIM_GOLPE,
+    CANT_ANIMACIONES
+} Animacion;
+
 //estructura monos
 typedef struct{
     float x;
@@ -20,7 +30,12 @@ typedef struct{
     int vida;
 
     int tipoPersonaje;
-}Mono;
+
+    int animacionActual;
+    int frameActual;    
+    int contadorAnimacion;
+    int mirandoDerecha;
+    }Mono;
 
 //estructura pantallas
 typedef enum {

@@ -4,7 +4,7 @@
 //definiciones
 #define CANT_MONOS 2
 #define CANT_TIPOS_PERSONAJES 2
-
+#define MAX_FRAMES_ANIMACION 4
 #define altomono 64
 #define anchomono 72
 #define velocidadmono 4

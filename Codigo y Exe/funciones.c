@@ -249,23 +249,137 @@ void dibujar_menu(ALLEGRO_FONT *fuente, int ANCHO, int opcionMenu)
 
 
 //dibujar monos
-void dibujar_monos(ALLEGRO_BITMAP *imagenesPersonajes[], Mono monos[])
+void dibujar_monos(
+    ALLEGRO_BITMAP *spritesPersonajes[CANT_TIPOS_PERSONAJES][CANT_ANIMACIONES][MAX_FRAMES_ANIMACION],
+    int cantidadFrames[CANT_TIPOS_PERSONAJES][CANT_ANIMACIONES],
+    Mono monos[]
+)
 {
     for(int i = 0; i < CANT_MONOS; i++)
     {
-        ALLEGRO_BITMAP *imagenActual = imagenesPersonajes[monos[i].tipoPersonaje];
+        int tipo = monos[i].tipoPersonaje;
+        int animacion = monos[i].animacionActual;
+        int frame = monos[i].frameActual;
+
+        if (tipo < 0 || tipo >= CANT_TIPOS_PERSONAJES)
+        {
+            continue;
+        }
+
+        if (animacion < 0 || animacion >= CANT_ANIMACIONES)
+        {
+            continue;
+        }
+
+        if (cantidadFrames[tipo][animacion] <= 0)
+        {
+            continue;
+        }
+
+        if (frame >= cantidadFrames[tipo][animacion])
+        {
+            frame = 0;
+        }
+
+        ALLEGRO_BITMAP *spriteActual = spritesPersonajes[tipo][animacion][frame];
+
+        if (spriteActual == NULL)
+        {
+            continue;
+        }
+
+        int direccion = 0;
+
+        if (monos[i].mirandoDerecha == 0)
+        {
+            direccion = ALLEGRO_FLIP_HORIZONTAL;
+        }
 
         al_draw_scaled_bitmap(
-            imagenActual,
+            spriteActual,
             0, 0,
-            al_get_bitmap_width(imagenActual),
-            al_get_bitmap_height(imagenActual),
+            al_get_bitmap_width(spriteActual),
+            al_get_bitmap_height(spriteActual),
             monos[i].x,
             monos[i].y,
             monos[i].ancho,
             monos[i].alto,
-            0
+            direccion
         );
+    }
+}
+
+void cambiar_animacion_mono(Mono *mono, int nuevaAnimacion)
+{
+    if (mono->animacionActual != nuevaAnimacion)
+    {
+        mono->animacionActual = nuevaAnimacion;
+        mono->frameActual = 0;
+        mono->contadorAnimacion = 0;
+    }
+}
+
+void actualizar_animacion_mono(
+    Mono *mono,
+    int izquierda,
+    int derecha,
+    int abajo,
+    int golpe,
+    int cantidadFrames[CANT_TIPOS_PERSONAJES][CANT_ANIMACIONES]
+)
+{
+    if (derecha == 1)
+    {
+        mono->mirandoDerecha = 1;
+    }
+
+    if (izquierda == 1)
+    {
+        mono->mirandoDerecha = 0;
+    }
+
+    if (golpe == 1)
+    {
+        cambiar_animacion_mono(mono, ANIM_GOLPE);
+    }
+    else if (mono->enSuelo == 0)
+    {
+        cambiar_animacion_mono(mono, ANIM_SALTAR);
+    }
+    else if (abajo == 1)
+    {
+        cambiar_animacion_mono(mono, ANIM_AGACHADO);
+    }
+    else if (izquierda == 1 || derecha == 1)
+    {
+        cambiar_animacion_mono(mono, ANIM_CAMINAR);
+    }
+    else
+    {
+        cambiar_animacion_mono(mono, ANIM_IDLE);
+    }
+
+    mono->contadorAnimacion++;
+
+    if (mono->contadorAnimacion >= 8)
+    {
+        mono->contadorAnimacion = 0;
+        mono->frameActual++;
+
+        int tipo = mono->tipoPersonaje;
+        int animacion = mono->animacionActual;
+        int cantidad = cantidadFrames[tipo][animacion];
+
+        if (cantidad <= 0)
+        {
+            mono->frameActual = 0;
+            return;
+        }
+
+        if (mono->frameActual >= cantidad)
+        {
+            mono->frameActual = 0;
+        }
     }
 }
 
@@ -294,6 +408,12 @@ void dibujar_monos(ALLEGRO_BITMAP *imagenesPersonajes[], Mono monos[])
         {
             monos[i].tipoPersonaje = PERSONAJE_DOS;
         }
+
+        /* Datos iniciales de animación */
+        monos[i].animacionActual = ANIM_IDLE;
+        monos[i].frameActual = 0;
+        monos[i].contadorAnimacion = 0;
+        monos[i].mirandoDerecha = 1;
 
         int encontrado = 0;
 
