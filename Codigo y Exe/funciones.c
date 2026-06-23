@@ -151,7 +151,7 @@ int cargar_mapa(const char *ruta, char mapa[MAPA_FILAS][MAPA_COLUMNAS])
 
 
 //Funcion Inserta tiles
-void dibujar_mapa(char mapa[MAPA_FILAS][MAPA_COLUMNAS],ALLEGRO_BITMAP *tilePiso,ALLEGRO_BITMAP *tileLava)
+void dibujar_mapa(char mapa[MAPA_FILAS][MAPA_COLUMNAS],ALLEGRO_BITMAP *tilePiso,ALLEGRO_BITMAP *tileLava, ALLEGRO_BITMAP *tileLavaquema)
 {
     int fila;
     int columna;
@@ -185,6 +185,19 @@ void dibujar_mapa(char mapa[MAPA_FILAS][MAPA_COLUMNAS],ALLEGRO_BITMAP *tilePiso,
                     0, 0,
                     al_get_bitmap_width(tileLava),
                     al_get_bitmap_height(tileLava),
+                    x,
+                    y,
+                    TAM_TILE,
+                    TAM_TILE,
+                    0
+                );
+            }
+            if(mapa[fila][columna] == '%')
+            {
+                al_draw_scaled_bitmap(tileLavaquema,
+                    0, 0,
+                    al_get_bitmap_width(tileLavaquema),
+                    al_get_bitmap_height(tileLavaquema),
                     x,
                     y,
                     TAM_TILE,
@@ -439,7 +452,7 @@ void actualizar_animacion_mono(
 //detectar bloque
 int es_tile_solido(char bloque)
 {
-    if (bloque == '#' || bloque == '~')
+    if (bloque == '#' || bloque == '~' || bloque == '%')
     {
         return 1;
     }

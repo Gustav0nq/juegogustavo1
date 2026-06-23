@@ -86,6 +86,8 @@ int main()
     spritesPersonajes[PERSONAJE_DOS][ANIM_GOLPE][0] = cargar_imagen("assets/imgs/personajetrex/trex8.png");
     cantidadFrames[PERSONAJE_DOS][ANIM_GOLPE] = 1;
 
+
+    
     if (spritesPersonajes[PERSONAJE_MONO][ANIM_IDLE][0] == NULL ||
     spritesPersonajes[PERSONAJE_DOS][ANIM_IDLE][0] == NULL)
     {
@@ -107,8 +109,9 @@ int main()
 
     ALLEGRO_BITMAP *tilePiso35 = cargar_imagen("assets/imgs/carpetatile/tiles/Tile_35.png");
     ALLEGRO_BITMAP *tilePiso02 = cargar_imagen("assets/imgs/carpetatile/tiles/Tile_02.png");
+    ALLEGRO_BITMAP *tileLavaquema = cargar_imagen("assets/imgs/tileslava/lava_animada_1.png");
 
-    if (tilePiso35 == NULL || tilePiso02 == NULL)
+    if (tilePiso35 == NULL || tilePiso02 == NULL || tileLavaquema == NULL)
     {
         return 1;
     }
@@ -301,7 +304,7 @@ while (cerrar == 0)
     }
     else if (pantallaActual == PANTALLA_JUEGO)
     {
-        dibujar_mapa(mapa, tilePiso35, tilePiso02);
+        dibujar_mapa(mapa, tilePiso35, tilePiso02, tileLavaquema);
         dibujar_monos(spritesPersonajes, cantidadFrames, monos);
         if (mostrarRectangulo == 1)
         {
@@ -327,6 +330,7 @@ while (cerrar == 0)
     al_destroy_font(fuente);
     al_destroy_bitmap(tilePiso35);
     al_destroy_bitmap(tilePiso02);
+    al_destroy_bitmap(tileLavaquema);
     al_destroy_bitmap(fondo);
     for (int tipo = 0; tipo < CANT_TIPOS_PERSONAJES; tipo++)
     {

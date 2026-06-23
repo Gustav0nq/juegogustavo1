@@ -21,7 +21,7 @@ ALLEGRO_BITMAP *cargar_imagen(const char *ruta);
 
 int cargar_mapa(const char *ruta, char mapa[MAPA_FILAS][MAPA_COLUMNAS]);
 
-void dibujar_mapa(char mapa[MAPA_FILAS][MAPA_COLUMNAS],ALLEGRO_BITMAP *tilePiso,ALLEGRO_BITMAP *tileLava);
+void dibujar_mapa(char mapa[MAPA_FILAS][MAPA_COLUMNAS],ALLEGRO_BITMAP *tilePiso,ALLEGRO_BITMAP *tileLava, ALLEGRO_BITMAP *tileLavaquema);
 
 void dibujar_fondo(ALLEGRO_BITMAP *fondo, int ANCHO, int ALTO);
 
