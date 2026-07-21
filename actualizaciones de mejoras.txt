@@ -1,6 +1,11 @@
-tile de lava, sprites de animaciones de lava
-sprites del personaje 
-objetos, armas
+hacer mapa 2
+mejorar animaciones lava y daño personaje
+implementar tiempo 
+modificar salto del trex ( al reves )
+ranking 
+que la caja misteriosa despliegue algo 
+poner fondo dependiendo el mapa
+
 
 
 resolucion pantalla

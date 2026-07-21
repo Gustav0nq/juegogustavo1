@@ -3,7 +3,7 @@
 
 typedef enum {
     PERSONAJE_MONO,
-    PERSONAJE_DOS
+    PERSONAJE_TREX
 } TipoPersonaje;
 
 typedef enum {
@@ -15,6 +15,20 @@ typedef enum {
     ANIM_GOLPE,
     CANT_ANIMACIONES
 } Animacion;
+
+typedef enum
+{
+    arma_sin,
+    arma_pistola,
+}tipodearma;
+
+typedef struct {
+    tipodearma tipo;
+    int municion;
+    int daño;
+    float velocidadproyectil;
+    int tiemporecarga;
+} Arma;
 
 //estructura monos
 typedef struct{
@@ -29,13 +43,35 @@ typedef struct{
 
     int vida;
 
+    int cooldownDaño;
+
     int tipoPersonaje;
 
     int animacionActual;
     int frameActual;    
     int contadorAnimacion;
     int mirandoDerecha;
-    }Mono;
+    Arma armaActual;
+    //Cantidad proyectiles
+    //   Proyectil proyectiles[MAX_PROYECTILES]; /*revisar esto,.. ya que en este caso cada mono tendria sus propios proyectiles */
+}Mono;
+
+typedef struct{
+    float x;
+    float y;
+
+    float velocidadX;
+
+    float ancho;
+    float alto;
+
+    int daño;
+    int activa;
+    int personajequedispara;
+    int personajedañado;
+
+
+} Proyectil;
 
 //estructura pantallas
 typedef enum {
@@ -44,4 +80,5 @@ typedef enum {
     PANTALLA_AJUSTES,
     PANTALLA_RANKING
 } Pantalla;
+
 #endif

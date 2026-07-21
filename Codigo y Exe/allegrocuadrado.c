@@ -16,13 +16,14 @@
 
 int main()
 {
+    int ANCHO = 0;
+    int ALTO = 0;
+    int ganador = 0;
+
     if (!INICIARALLEGRO())
     {   
         return 1;
     }
-
-    int ANCHO = 0;
-    int ALTO = 0;
 
     ALLEGRO_DISPLAY *display = crear_pantalla_completa(&ANCHO, &ALTO);
 
@@ -66,30 +67,30 @@ int main()
 
     
     /* PERSONAJE 2: T-REX */
-    spritesPersonajes[PERSONAJE_DOS][ANIM_IDLE][0] = cargar_imagen("assets/imgs/personajetrex/trex1.png");
-    cantidadFrames[PERSONAJE_DOS][ANIM_IDLE] = 1;
+    spritesPersonajes[PERSONAJE_TREX][ANIM_IDLE][0] = cargar_imagen("assets/imgs/personajetrex/trex1.png");
+    cantidadFrames[PERSONAJE_TREX][ANIM_IDLE] = 1;
 
-    spritesPersonajes[PERSONAJE_DOS][ANIM_CAMINAR][0] = cargar_imagen("assets/imgs/personajetrex/trex2.png");
-    spritesPersonajes[PERSONAJE_DOS][ANIM_CAMINAR][1] = cargar_imagen("assets/imgs/personajetrex/trex3.png");   
-    cantidadFrames[PERSONAJE_DOS][ANIM_CAMINAR] = 2;
+    spritesPersonajes[PERSONAJE_TREX][ANIM_CAMINAR][0] = cargar_imagen("assets/imgs/personajetrex/trex2.png");
+    spritesPersonajes[PERSONAJE_TREX][ANIM_CAMINAR][1] = cargar_imagen("assets/imgs/personajetrex/trex3.png");   
+    cantidadFrames[PERSONAJE_TREX][ANIM_CAMINAR] = 2;
 
-    spritesPersonajes[PERSONAJE_DOS][ANIM_CORRER][0] = cargar_imagen("assets/imgs/personajetrex/trex5.png");
-    spritesPersonajes[PERSONAJE_DOS][ANIM_CORRER][1] = cargar_imagen("assets/imgs/personajetrex/trex4.png");
-    cantidadFrames[PERSONAJE_DOS][ANIM_CORRER] = 2;
+    spritesPersonajes[PERSONAJE_TREX][ANIM_CORRER][0] = cargar_imagen("assets/imgs/personajetrex/trex5.png");
+    spritesPersonajes[PERSONAJE_TREX][ANIM_CORRER][1] = cargar_imagen("assets/imgs/personajetrex/trex4.png");
+    cantidadFrames[PERSONAJE_TREX][ANIM_CORRER] = 2;
 
-    spritesPersonajes[PERSONAJE_DOS][ANIM_SALTAR][0] = cargar_imagen("assets/imgs/personajetrex/trex6.png");
-    cantidadFrames[PERSONAJE_DOS][ANIM_SALTAR] = 1;
+    spritesPersonajes[PERSONAJE_TREX][ANIM_SALTAR][0] = cargar_imagen("assets/imgs/personajetrex/trex6.png");
+    cantidadFrames[PERSONAJE_TREX][ANIM_SALTAR] = 1;
 
-    spritesPersonajes[PERSONAJE_DOS][ANIM_AGACHADO][0] = cargar_imagen("assets/imgs/personajetrex/trex7.png");
-    cantidadFrames[PERSONAJE_DOS][ANIM_AGACHADO] = 1;
+    spritesPersonajes[PERSONAJE_TREX][ANIM_AGACHADO][0] = cargar_imagen("assets/imgs/personajetrex/trex7.png");
+    cantidadFrames[PERSONAJE_TREX][ANIM_AGACHADO] = 1;
 
-    spritesPersonajes[PERSONAJE_DOS][ANIM_GOLPE][0] = cargar_imagen("assets/imgs/personajetrex/trex8.png");
-    cantidadFrames[PERSONAJE_DOS][ANIM_GOLPE] = 1;
+    spritesPersonajes[PERSONAJE_TREX][ANIM_GOLPE][0] = cargar_imagen("assets/imgs/personajetrex/trex8.png");
+    cantidadFrames[PERSONAJE_TREX][ANIM_GOLPE] = 1;
 
 
-    
+
     if (spritesPersonajes[PERSONAJE_MONO][ANIM_IDLE][0] == NULL ||
-    spritesPersonajes[PERSONAJE_DOS][ANIM_IDLE][0] == NULL)
+    spritesPersonajes[PERSONAJE_TREX][ANIM_IDLE][0] == NULL)
     {
         printf("Error cargando sprites de personajes\n");
         al_destroy_event_queue(cola);
@@ -110,15 +111,20 @@ int main()
     ALLEGRO_BITMAP *tilePiso35 = cargar_imagen("assets/imgs/carpetatile/tiles/Tile_35.png");
     ALLEGRO_BITMAP *tilePiso02 = cargar_imagen("assets/imgs/carpetatile/tiles/Tile_02.png");
     ALLEGRO_BITMAP *tileLavaquema = cargar_imagen("assets/imgs/tileslava/lava_animada_1.png");
+    ALLEGRO_BITMAP *tilepinchos = cargar_imagen("assets/imgs/pinchos/pinchos.png");
+    ALLEGRO_BITMAP *tilebotiquin = cargar_imagen("assets/imgs/botiquin/botiquin.png");
+    ALLEGRO_BITMAP *tilecaja = cargar_imagen("assets/imgs/cajas/caja1.png");
 
-    if (tilePiso35 == NULL || tilePiso02 == NULL || tileLavaquema == NULL)
+    if (tilePiso35 == NULL || tilePiso02 == NULL || tileLavaquema == NULL || tilepinchos == NULL || tilebotiquin == NULL || tilecaja == NULL)
     {
         return 1;
     }
 
-    ALLEGRO_FONT *fuente = al_load_ttf_font("assets/fuentes/fuentemenu.ttf", 100, 0);   
+    ALLEGRO_FONT *fuente = al_load_ttf_font("assets/fuentes/fuentemenu.ttf", 100, 0);  
+    ALLEGRO_FONT *fuenteVida = al_load_ttf_font("assets/fuentes/fuentemenu.ttf", 26, 0); 
+    ALLEGRO_FONT *fuenteganador = al_load_ttf_font("assets/fuentes/fuentemenu.ttf", 180,0);
 
-    if (fuente == NULL)
+    if (fuente == NULL || fuenteVida == NULL || fuenteganador == NULL)
     {   
         printf("No se pudo crear la fuente\n");
         al_destroy_bitmap(fondo);
@@ -149,152 +155,235 @@ int main()
 
     Mono monos[CANT_MONOS];
     inicializar_monos_sobre_piso(monos, mapa);
+    Proyectil proyectiles[MAX_PROYECTILES]= {0};
+    
+    int mostrarRectangulo = 0;  
+    int monoActivo = PRIMER_MONO;
+    int trexActivo = PRIMER_TREX;
 
-    int monoActivo = 0;
-    int mostrarRectangulo = 0;
+    int tecla_izquierda_mono = 0;
+    int tecla_derecha_mono = 0;
+    int salto_mono = 0;
 
-    int salto = 0;
-    int tecla_izquierda = 0;
-    int tecla_derecha = 0;
-    int tecla_abajo = 0;
-    int golpe = 0;
-
+    int tecla_izquierda_trex = 0;
+    int tecla_derecha_trex = 0;
+    int salto_trex = 0;
     // 5. Ciclo principal del programa
 while (cerrar == 0)
 {
     ALLEGRO_EVENT evento;
 
     while (al_get_next_event(cola, &evento))
+{
+    if (evento.type == ALLEGRO_EVENT_DISPLAY_CLOSE)
     {
-        if (evento.type == ALLEGRO_EVENT_DISPLAY_CLOSE)
+        cerrar = 1;
+    }
+
+    if (evento.type == ALLEGRO_EVENT_KEY_DOWN)
+    {
+        if (evento.keyboard.keycode == ALLEGRO_KEY_ESCAPE)
         {
-            cerrar = 1;
-        }
-
-        if (evento.type == ALLEGRO_EVENT_KEY_DOWN)
-        {
-            if (evento.keyboard.keycode == ALLEGRO_KEY_ESCAPE)
+            if (pantallaActual == PANTALLA_MENU)
             {
-                if (pantallaActual == PANTALLA_MENU)
-                {
-                    cerrar = 1;
-                }
-                else
-                {
-                    pantallaActual = PANTALLA_MENU;
-                }
+                cerrar = 1;
             }
-            else if (pantallaActual == PANTALLA_MENU)
+            else
             {
-                if (evento.keyboard.keycode == ALLEGRO_KEY_UP)
-                {
-                    opcionMenu--;
-
-                    if (opcionMenu < 0)
-                    {
-                        opcionMenu = totalOpciones - 1;
-                    }
-                }
-                else if (evento.keyboard.keycode == ALLEGRO_KEY_DOWN)
-                {
-                    opcionMenu++;
-
-                    if (opcionMenu >= totalOpciones)
-                    {
-                        opcionMenu = 0;
-                    }
-                }
-                else if (evento.keyboard.keycode == ALLEGRO_KEY_ENTER)
-                {
-                    if (opcionMenu == 0)
-                    {
-                        pantallaActual = PANTALLA_JUEGO;
-                    }
-                    else if (opcionMenu == 1)
-                    {
-                        pantallaActual = PANTALLA_AJUSTES;
-                    }
-                    else if (opcionMenu == 2)
-                    {
-                        pantallaActual = PANTALLA_RANKING;
-                    }
-                }
-            }
-            else if (pantallaActual == PANTALLA_JUEGO)
-            {
-                if (evento.keyboard.keycode == ALLEGRO_KEY_UP)
-                {
-                    salto = 1;
-                }
-                else if (evento.keyboard.keycode == ALLEGRO_KEY_DOWN)
-                {
-                    tecla_abajo = 1;
-                }
-                else if (evento.keyboard.keycode == ALLEGRO_KEY_LEFT)
-                {
-                    tecla_izquierda = 1;
-                }
-                else if (evento.keyboard.keycode == ALLEGRO_KEY_RIGHT)
-                {
-                    tecla_derecha = 1;
-                }
-                else if (evento.keyboard.keycode == ALLEGRO_KEY_SPACE)
-                {
-                    golpe = 1;
-                }
-                else if (evento.keyboard.keycode == ALLEGRO_KEY_TAB)
-                {   
-                    monoActivo++;
-
-                    if (monoActivo >= CANT_MONOS)
-                    {
-                        monoActivo = 0;
-                    }
-                }
-                else if (evento.keyboard.keycode == ALLEGRO_KEY_H)
-                {
-                    mostrarRectangulo = !mostrarRectangulo;
-                }
+                pantallaActual = PANTALLA_MENU;
             }
         }
-        if (evento.type == ALLEGRO_EVENT_KEY_UP)
+        else if (pantallaActual == PANTALLA_MENU)
         {
-            if (evento.keyboard.keycode == ALLEGRO_KEY_LEFT)
+            if (evento.keyboard.keycode == ALLEGRO_KEY_UP)
             {
-                tecla_izquierda = 0;
-            }
-            else if (evento.keyboard.keycode == ALLEGRO_KEY_RIGHT)
-            {
-                tecla_derecha = 0;
+                opcionMenu--;
+
+                if (opcionMenu < 0)
+                {
+                    opcionMenu = totalOpciones - 1;
+                }
             }
             else if (evento.keyboard.keycode == ALLEGRO_KEY_DOWN)
             {
-                tecla_abajo = 0;
+                opcionMenu++;
+
+                if (opcionMenu >= totalOpciones)
+                {
+                    opcionMenu = 0;
+                }
             }
-            else if (evento.keyboard.keycode == ALLEGRO_KEY_SPACE)
+            else if (evento.keyboard.keycode == ALLEGRO_KEY_ENTER)
             {
-                golpe = 0;
+                if (opcionMenu == 0)
+                {
+                    pantallaActual = PANTALLA_JUEGO;
+                }
+                else if (opcionMenu == 1)
+                {
+                    pantallaActual = PANTALLA_AJUSTES;
+                }
+                else if (opcionMenu == 2)
+                {
+                    pantallaActual = PANTALLA_RANKING;
+                }
             }
         }
+        else if (pantallaActual == PANTALLA_JUEGO)
+        {
+            if (evento.keyboard.keycode == ALLEGRO_KEY_UP)
+            {
+                salto_mono = 1;
+            }
+            else if (evento.keyboard.keycode == ALLEGRO_KEY_LEFT)
+            {
+                tecla_izquierda_mono = 1;
+            }
+            else if (evento.keyboard.keycode == ALLEGRO_KEY_RIGHT)
+            {
+                tecla_derecha_mono = 1;
+            }
+            else if (evento.keyboard.keycode == ALLEGRO_KEY_MINUS ||
+                     evento.keyboard.keycode == ALLEGRO_KEY_PAD_MINUS)
+            {
+                monoActivo++;
 
+                if (monoActivo > ULTIMO_MONO)
+                {
+                    monoActivo = PRIMER_MONO;
+                }
+            }
+            else if (evento.keyboard.keycode == ALLEGRO_KEY_W)
+            {
+                salto_trex = 1;
+            }
+            else if (evento.keyboard.keycode == ALLEGRO_KEY_A)
+            {
+                tecla_izquierda_trex = 1;
+            }
+            else if (evento.keyboard.keycode == ALLEGRO_KEY_D)
+            {
+                tecla_derecha_trex = 1;
+            }
+            else if (evento.keyboard.keycode == ALLEGRO_KEY_TAB)
+            {
+                trexActivo++;
+
+                if (trexActivo > ULTIMO_TREX)
+                {
+                    trexActivo = PRIMER_TREX;
+                }
+            }
+            else if (evento.keyboard.keycode == ALLEGRO_KEY_ENTER)
+            {
+            disparar_arma(proyectiles,&monos[monoActivo],monoActivo);
+            }
+            else if (evento.keyboard.keycode == ALLEGRO_KEY_E)
+            {
+            disparar_arma(proyectiles,&monos[trexActivo],trexActivo);
+            }
+            else if (evento.keyboard.keycode == ALLEGRO_KEY_H)
+            {
+                mostrarRectangulo = !mostrarRectangulo;
+            }
+        }
     }
 
-    if (pantallaActual == PANTALLA_JUEGO)
+    if (evento.type == ALLEGRO_EVENT_KEY_UP)
     {
-        mover_mono(&monos[monoActivo], salto, tecla_izquierda, tecla_derecha, mapa);
-        limitar_mono_pantalla(&monos[monoActivo], ANCHO, ALTO);
+        if (pantallaActual == PANTALLA_JUEGO)
+        {
+            if (evento.keyboard.keycode == ALLEGRO_KEY_LEFT)
+            {
+                tecla_izquierda_mono = 0;
+            }
+            else if (evento.keyboard.keycode == ALLEGRO_KEY_RIGHT)
+            {
+                tecla_derecha_mono = 0;
+            }
+            else if (evento.keyboard.keycode == ALLEGRO_KEY_A)
+            {
+                tecla_izquierda_trex = 0;
+            }
+            else if (evento.keyboard.keycode == ALLEGRO_KEY_D)
+            {
+                tecla_derecha_trex = 0;
+            }
+        }
+    }
+}
+   
+    if (pantallaActual == PANTALLA_JUEGO)
+{
+    for (int i = 0; i < CANT_MONOS; i++)
+    {
+        if (monos[i].vida > 0)
+        {
+            int esMonoActivo = 0;
+            int esTrexActivo = 0;
 
-        actualizar_animacion_mono(
-            &monos[monoActivo],
-            tecla_izquierda,
-            tecla_derecha,
-            tecla_abajo,
-            golpe,
-            cantidadFrames
+            int saltoPersonaje = 0;
+            int izquierdaPersonaje = 0;
+            int derechaPersonaje = 0;
+
+            if (i == monoActivo)
+            {
+                esMonoActivo = 1;
+            }
+
+            if (i == trexActivo)
+            {
+                esTrexActivo = 1;
+            }
+
+            if (esMonoActivo == 1)
+            {
+                saltoPersonaje = salto_mono;
+                izquierdaPersonaje = tecla_izquierda_mono;
+                derechaPersonaje = tecla_derecha_mono;
+            }
+
+            if (esTrexActivo == 1)
+            {
+                saltoPersonaje = salto_trex;
+                izquierdaPersonaje = tecla_izquierda_trex;
+                derechaPersonaje = tecla_derecha_trex;
+            }
+
+            mover_mono(
+                &monos[i],
+                saltoPersonaje,
+                izquierdaPersonaje,
+                derechaPersonaje,
+                mapa
             );
 
-            salto = 0;
+            limitar_mono_pantalla(&monos[i], ANCHO, ALTO);
+
+            aplicar_daño_pinchos(&monos[i], mapa);
+            aplicar_tile_muerte(&monos[i], mapa);
+
+            if (esMonoActivo == 1 || esTrexActivo == 1)
+            {
+                aplicar_curacion_botiquin(&monos[i], mapa);
+            }
+
+            actualizar_animacion_mono(
+                &monos[i],
+                izquierdaPersonaje,
+                derechaPersonaje,
+                0,
+                0,
+                cantidadFrames
+            );
+        }
     }
+    actualizar_proyectiles(proyectiles, monos, ANCHO);
+    ganador=revisar_ganador(monos);
+    salto_mono = 0;
+    salto_trex = 0;
+}
+    
     al_clear_to_color(al_map_rgb(0, 0, 0)); 
     dibujar_fondo(fondo, ANCHO, ALTO);
 
@@ -304,9 +393,32 @@ while (cerrar == 0)
     }
     else if (pantallaActual == PANTALLA_JUEGO)
     {
-        dibujar_mapa(mapa, tilePiso35, tilePiso02, tileLavaquema);
+        dibujar_mapa(mapa, tilePiso35, tilePiso02, tileLavaquema, tilepinchos, tilebotiquin, tilecaja);
         dibujar_monos(spritesPersonajes, cantidadFrames, monos);
-        if (mostrarRectangulo == 1)
+        dibujar_proyectiles(proyectiles);
+        for (int fila = 0; fila < MAPA_FILAS; fila++)
+        {
+            for (int columna = 0; columna < MAPA_COLUMNAS; columna++)
+            {
+                if (mapa[fila][columna] == '$')
+                {
+                al_draw_scaled_bitmap(
+                tilepinchos,
+                0,
+                0,
+                al_get_bitmap_width(tilepinchos),
+                al_get_bitmap_height(tilepinchos),
+                columna * TAM_TILE,
+                fila * TAM_TILE,
+                TAM_TILE,
+                TAM_TILE,
+                0
+                );
+                }
+            }
+        }
+        dibujar_vidas_monos(monos, fuenteVida, ANCHO);
+        if (mostrarRectangulo == 1 && monos[monoActivo].vida > 0)
         {
             dibujar_hitbox_mono(monos[monoActivo]);
         }
@@ -322,15 +434,20 @@ while (cerrar == 0)
         al_draw_text(fuente, al_map_rgb(180, 180, 180), ANCHO / 2, 360, ALLEGRO_ALIGN_CENTER, "Presiona ESC para volver");
     }
 
+    dibujar_ganador(ganador, fuenteganador, ANCHO, ALTO);
     al_flip_display();
 
     al_rest(0.01);
 }   
-
+    al_destroy_font(fuenteVida);
     al_destroy_font(fuente);
+    al_destroy_font(fuenteganador);
     al_destroy_bitmap(tilePiso35);
     al_destroy_bitmap(tilePiso02);
     al_destroy_bitmap(tileLavaquema);
+    al_destroy_bitmap(tilepinchos);
+    al_destroy_bitmap(tilebotiquin);
+    al_destroy_bitmap(tilecaja);
     al_destroy_bitmap(fondo);
     for (int tipo = 0; tipo < CANT_TIPOS_PERSONAJES; tipo++)
     {

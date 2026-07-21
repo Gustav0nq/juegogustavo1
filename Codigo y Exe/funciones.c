@@ -151,7 +151,7 @@ int cargar_mapa(const char *ruta, char mapa[MAPA_FILAS][MAPA_COLUMNAS])
 
 
 //Funcion Inserta tiles
-void dibujar_mapa(char mapa[MAPA_FILAS][MAPA_COLUMNAS],ALLEGRO_BITMAP *tilePiso,ALLEGRO_BITMAP *tileLava, ALLEGRO_BITMAP *tileLavaquema)
+void dibujar_mapa(char mapa[MAPA_FILAS][MAPA_COLUMNAS],ALLEGRO_BITMAP *tilePiso,ALLEGRO_BITMAP *tileLava, ALLEGRO_BITMAP *tileLavaquema, ALLEGRO_BITMAP *tilepinchos, ALLEGRO_BITMAP *tilebotiquin, ALLEGRO_BITMAP *tilecaja)
 {
     int fila;
     int columna;
@@ -205,6 +205,50 @@ void dibujar_mapa(char mapa[MAPA_FILAS][MAPA_COLUMNAS],ALLEGRO_BITMAP *tilePiso,
                     0
                 );
             }
+            if(mapa[fila][columna] == '$')
+            {
+                al_draw_scaled_bitmap(tilepinchos,
+                    0, 0,
+                    al_get_bitmap_width(tilepinchos),
+                    al_get_bitmap_height(tilepinchos),
+                    x,
+                    y,
+                    TAM_TILE,
+                    TAM_TILE,
+                    0
+                );
+            }
+            if(mapa[fila][columna] == '*')
+            {
+                al_draw_scaled_bitmap(tilebotiquin,
+                    0, 0,
+                    al_get_bitmap_width(tilebotiquin),
+                    al_get_bitmap_height(tilebotiquin),
+                    x,
+                    y,
+                    TAM_TILE,
+                    TAM_TILE,
+                    0
+                );
+            }
+            if(mapa[fila][columna] == 'C')
+            {
+                al_draw_scaled_bitmap(tilecaja,
+                    0, 0,
+                    al_get_bitmap_width(tilecaja),
+                    al_get_bitmap_height(tilecaja),
+                    x,
+                    y,
+                    TAM_TILE,
+                    TAM_TILE,
+                    0
+                );
+            }
+
+
+
+
+
         }
     }
 }
@@ -268,8 +312,14 @@ void dibujar_monos(
     Mono monos[]
 )
 {
+
     for(int i = 0; i < CANT_MONOS; i++)
-    {
+    {   
+        if (monos[i].vida <= 0)
+        {
+            continue;
+        }
+
         int tipo = monos[i].tipoPersonaje;
         int animacion = monos[i].animacionActual;
         int frame = monos[i].frameActual;
@@ -411,16 +461,23 @@ void actualizar_animacion_mono(
         monos[i].velocidadY = 0;
         monos[i].enSuelo = 1;
 
-        monos[i].vida = 200;
+        monos[i].vida = VIDA_MAXIMA_MONO;
+        monos[i].cooldownDaño = 0;
+        monos[i].armaActual.tipo = arma_pistola;
+        monos[i].armaActual.daño = dañoarma1;
+        monos[i].armaActual.municion = municionarma1;
+        monos[i].armaActual.tiemporecarga = tiemporecargaarma1;
+        monos[i].armaActual.velocidadproyectil = velocidadarma1;
 
-        if (i == 0)
+        
+        if (i < CANT_MONOS/2)
         {
             monos[i].tipoPersonaje = PERSONAJE_MONO;
         }
         else
         {
-            monos[i].tipoPersonaje = PERSONAJE_DOS;
-        }
+            monos[i].tipoPersonaje = PERSONAJE_TREX;
+        }   
 
         /* Datos iniciales de animación */
         monos[i].animacionActual = ANIM_IDLE;
@@ -452,7 +509,7 @@ void actualizar_animacion_mono(
 //detectar bloque
 int es_tile_solido(char bloque)
 {
-    if (bloque == '#' || bloque == '~' || bloque == '%')
+    if (bloque == '#' || bloque == '~' || bloque == '%' || bloque == '*' || bloque == 'C')
     {
         return 1;
     }
@@ -644,4 +701,498 @@ void dibujar_hitbox_mono(Mono mono)
         al_map_rgb(255, 0, 0),
         3
     );
+}
+
+void dibujar_vidas_monos(Mono monos[], ALLEGRO_FONT *fuenteVida, int ANCHO)
+{
+    int contadorMonos = 0;
+    int contadorTrex = 0;
+
+    for (int i = 0; i < CANT_MONOS; i++)
+    {
+        int vidaActual = monos[i].vida;
+
+        if (vidaActual < 0)
+        {
+            vidaActual = 0;
+        }
+
+        if (vidaActual > VIDA_MAXIMA_MONO)
+        {
+            vidaActual = VIDA_MAXIMA_MONO;
+        }
+
+        float porcentajeVida = (float)vidaActual / VIDA_MAXIMA_MONO;
+        float anchoVida = VIDA_BARRA_ANCHO * porcentajeVida;
+
+        float x;
+        float y;
+
+        const char *nombrePersonaje;
+        int numeroPersonaje;
+
+        if (monos[i].tipoPersonaje == PERSONAJE_MONO)
+        {
+            nombrePersonaje = "MONO";
+            numeroPersonaje = contadorMonos + 1;
+
+            x = 40;
+            y = 35 + contadorMonos * 60;
+
+            contadorMonos++;
+        }
+        else
+        {
+            nombrePersonaje = "T-REX";
+            numeroPersonaje = contadorTrex + 1;
+
+            x = ANCHO - VIDA_BARRA_ANCHO - 40;
+            y = 35 + contadorTrex * 60;
+
+            contadorTrex++;
+        }
+
+        ALLEGRO_COLOR colorBarra = al_map_rgb(0, 220, 0);
+
+        if (porcentajeVida <= 0.60)
+        {
+            colorBarra = al_map_rgb(255, 180, 0);
+        }
+
+        if (porcentajeVida <= 0.30)
+        {
+            colorBarra = al_map_rgb(220, 0, 0);
+        }
+
+        al_draw_filled_rectangle(
+            x - 4,
+            y - 4,
+            x + VIDA_BARRA_ANCHO + 4,
+            y + VIDA_BARRA_ALTO + 4,
+            al_map_rgb(20, 20, 20)
+        );
+
+        al_draw_filled_rectangle(
+            x,
+            y,
+            x + VIDA_BARRA_ANCHO,
+            y + VIDA_BARRA_ALTO,
+            al_map_rgb(80, 0, 0)
+        );
+
+        al_draw_filled_rectangle(
+            x,
+            y,
+            x + anchoVida,
+            y + VIDA_BARRA_ALTO,
+            colorBarra
+        );
+
+        al_draw_rectangle(
+            x,
+            y,
+            x + VIDA_BARRA_ANCHO,
+            y + VIDA_BARRA_ALTO,
+            al_map_rgb(255, 255, 255),
+            2
+        );
+
+        al_draw_textf(
+        fuenteVida,
+        al_map_rgb(255, 255, 255),
+        x,
+        y + VIDA_BARRA_ALTO + 6,
+        0,
+        "%s %d VIDA %d",
+        nombrePersonaje,
+        numeroPersonaje,
+        vidaActual
+        );
+    }
+}
+
+int mono_toca_tile(char mapa[MAPA_FILAS][MAPA_COLUMNAS], float x, float y, float ancho, float alto, char tileBuscado)
+{
+    int columnaIzquierda = x / TAM_TILE;
+    int columnaDerecha = (x + ancho - 1) / TAM_TILE;
+    int filaArriba = y / TAM_TILE;
+    int filaAbajo = (y + alto - 1) / TAM_TILE;
+
+    if (columnaDerecha < 0 || columnaIzquierda >= MAPA_COLUMNAS ||
+        filaAbajo < 0 || filaArriba >= MAPA_FILAS)
+    {
+        return 0;
+    }
+
+    if (columnaIzquierda < 0)
+    {
+        columnaIzquierda = 0;
+    }
+
+    if (columnaDerecha >= MAPA_COLUMNAS)
+    {
+        columnaDerecha = MAPA_COLUMNAS - 1;
+    }
+
+    if (filaArriba < 0)
+    {
+        filaArriba = 0;
+    }
+
+    if (filaAbajo >= MAPA_FILAS)
+    {
+        filaAbajo = MAPA_FILAS - 1;
+    }
+
+    for (int fila = filaArriba; fila <= filaAbajo; fila++)
+    {
+        for (int columna = columnaIzquierda; columna <= columnaDerecha; columna++)
+        {
+            if (mapa[fila][columna] == tileBuscado)
+            {
+                return 1;
+            }
+        }
+    }
+
+    return 0;
+}
+
+
+void aplicar_daño_pinchos(Mono *mono, char mapa[MAPA_FILAS][MAPA_COLUMNAS])
+{
+    if (mono->cooldownDaño > 0)
+    {
+        mono->cooldownDaño--;
+    }
+
+    float hitboxX = mono->x + HITBOX_MONO_OFFSET_X;
+    float hitboxY = mono->y + HITBOX_MONO_OFFSET_Y;
+
+    if (mono_toca_tile(
+            mapa,
+            hitboxX,
+            hitboxY,
+            HITBOX_MONO_ANCHO,
+            HITBOX_MONO_ALTO + 2,
+            '$'
+        ))
+    {
+        if (mono->cooldownDaño == 0)
+        {
+            mono->vida -= DAÑO_PINCHOS;
+
+            if (mono->vida < 0)
+            {
+                mono->vida = 0;
+            }
+
+            mono->cooldownDaño = COOLDOWN_DAÑO_PINCHOS;
+        }
+    }
+}
+
+void aplicar_tile_muerte(Mono *mono, char mapa[MAPA_FILAS][MAPA_COLUMNAS])
+{
+    float hitboxX = mono ->x +
+    HITBOX_MONO_OFFSET_X;
+    float hitboxY = mono ->y +
+    HITBOX_MONO_OFFSET_Y;
+    if(mono_toca_tile(
+            mapa,
+            hitboxX,
+            hitboxY,
+            HITBOX_MONO_ANCHO,
+            HITBOX_MONO_ALTO + 4,
+            '%'
+            )
+        )
+    {
+        mono->vida = 0;
+    }
+}
+
+
+void aplicar_curacion_botiquin(Mono *mono, char mapa[MAPA_FILAS][MAPA_COLUMNAS])
+{
+    float hitboxX = mono->x + HITBOX_MONO_OFFSET_X;
+    float hitboxY = mono->y + HITBOX_MONO_OFFSET_Y;
+
+    int columnaIzquierda = (hitboxX -8)/ TAM_TILE;
+    int columnaDerecha = (hitboxX + HITBOX_MONO_ANCHO +8 - 1) / TAM_TILE;
+    int filaArriba = hitboxY / TAM_TILE;
+    int filaAbajo = (hitboxY + HITBOX_MONO_ALTO - 1) / TAM_TILE;
+
+    if (columnaIzquierda < 0)
+    {
+        columnaIzquierda = 0;
+    }
+
+    if (columnaDerecha >= MAPA_COLUMNAS)
+    {
+        columnaDerecha = MAPA_COLUMNAS - 1;
+    }
+
+    if (filaArriba < 0)
+    {
+        filaArriba = 0;
+    }
+
+    if (filaAbajo >= MAPA_FILAS)
+    {
+        filaAbajo = MAPA_FILAS - 1;
+    }
+
+    for (int fila = filaArriba; fila <= filaAbajo; fila++)
+    {
+        for (int columna = columnaIzquierda; columna <= columnaDerecha; columna++)
+        {
+            if (mapa[fila][columna] == '*')
+            {
+                if (mono->vida < VIDA_MAXIMA_MONO)
+                {
+                    mono->vida += CURACION_BOTIQUIN;
+
+                    if (mono->vida > VIDA_MAXIMA_MONO)
+                    {
+                        mono->vida = VIDA_MAXIMA_MONO;
+                    }
+
+                    mapa[fila][columna] = '.';
+                }
+
+                return;
+            }
+        }
+    }
+}
+
+void disparar_arma(Proyectil proyectiles[],Mono *personaje,int indicePersonaje)
+{
+    if (personaje->vida <= 0)
+    {
+        return;
+    }
+
+    if (personaje->armaActual.tipo == arma_sin)
+    {
+        return;
+    }
+
+    if (personaje->armaActual.municion <= 0)
+    {
+        return;
+    }
+
+    for (int i = 0; i < MAX_PROYECTILES; i++)
+    {
+        if (proyectiles[i].activa == 0)
+        {
+            proyectiles[i].activa = 1;
+
+            proyectiles[i].ancho = PROYECTIL_ANCHO;
+            proyectiles[i].alto = PROYECTIL_ALTO;
+
+            proyectiles[i].daño =
+                personaje->armaActual.daño;
+
+            proyectiles[i].personajequedispara =
+                indicePersonaje;
+
+            proyectiles[i].personajedañado = -1;
+
+            proyectiles[i].y = personaje->y + HITBOX_MONO_OFFSET_Y + HITBOX_MONO_ALTO / 2 - PROYECTIL_ALTO / 2;
+
+            if (personaje->mirandoDerecha == 1)
+            {
+
+                proyectiles[i].x =
+                    personaje->x +
+                    HITBOX_MONO_OFFSET_X +
+                    HITBOX_MONO_ANCHO;
+
+                proyectiles[i].velocidadX =
+                    personaje->armaActual.velocidadproyectil;
+            }
+            else
+            {
+                proyectiles[i].x = personaje->x + HITBOX_MONO_OFFSET_X - PROYECTIL_ANCHO;
+
+                proyectiles[i].velocidadX =-personaje->armaActual.velocidadproyectil;
+            }
+
+            personaje->armaActual.municion--;
+
+            return;
+        }
+    }
+}
+
+void actualizar_proyectiles(
+    Proyectil proyectiles[], Mono monos[],
+    int anchoPantalla
+)
+{
+    int i=0;
+    int j=0;
+
+    for (i = 0; i < MAX_PROYECTILES; i++)
+    {
+        if (proyectiles[i].activa == 1)
+        {
+            proyectiles[i].x +=
+                proyectiles[i].velocidadX;
+
+            if (proyectiles[i].x > anchoPantalla ||
+                proyectiles[i].x +
+                proyectiles[i].ancho < 0)
+            {
+                proyectiles[i].activa = 0;
+                continue;
+            }
+            for(j=0 ;j<CANT_MONOS; j++)
+            {
+                int indiceDisparador =  proyectiles[i].personajequedispara;
+
+                /*personaje que dispara se guarda en la variable indiceDisparador, revisa q no puede hacerse daño el mismo*/
+                
+                if(j==indiceDisparador)
+                {
+                    continue;
+                }
+
+                if(monos[j].vida<=0)
+                {
+                    continue;
+                }
+
+                if (indiceDisparador >= 0 && indiceDisparador < CANT_MONOS && monos[j].tipoPersonaje == monos[indiceDisparador].tipoPersonaje)
+                {
+                    continue;
+                }
+
+                float hitboxX = monos[j].x + HITBOX_MONO_OFFSET_X;
+                float hitboxY = monos[j].y + HITBOX_MONO_OFFSET_Y;
+
+                int hayColision =
+                    proyectiles[i].x <
+                    hitboxX + HITBOX_MONO_ANCHO &&
+
+                    proyectiles[i].x +
+                    proyectiles[i].ancho >
+                    hitboxX &&
+
+                    proyectiles[i].y <
+                    hitboxY + HITBOX_MONO_ALTO &&
+
+                    proyectiles[i].y +
+                    proyectiles[i].alto >
+                    hitboxY;
+
+                
+
+                if(hayColision == 1 )
+                {
+                    monos[j].vida = monos[j].vida - proyectiles[i].daño;
+
+                     if (monos[j].vida < 0)
+                    {
+                        monos[j].vida = 0;
+                    }
+
+                    proyectiles[i].personajedañado = j;
+
+                    proyectiles[i].activa = 0;
+
+                    break;
+
+                }
+            }
+        }
+    }
+}
+
+void dibujar_proyectiles(
+    Proyectil proyectiles[]
+)
+{
+    for (int i = 0; i < MAX_PROYECTILES; i++)
+    {
+        if (proyectiles[i].activa == 1)
+        {
+            al_draw_filled_rectangle(
+                proyectiles[i].x,
+                proyectiles[i].y,
+
+                proyectiles[i].x +
+                proyectiles[i].ancho,
+
+                proyectiles[i].y +
+                proyectiles[i].alto,
+
+                al_map_rgb(255, 220, 0)
+            );
+        }
+    }
+}
+
+int revisar_ganador(Mono monos[])
+{
+    int i=0;
+    int j=0;
+    int monosVivos = 0;
+    int trexVivos = 0;
+
+    for (i = 0; i < CANT_MONOS; i++)
+    {
+        if (monos[i].vida > 0)
+        {
+            if (monos[i].tipoPersonaje == PERSONAJE_MONO)
+            {
+                monosVivos++;
+            }
+            else if (monos[i].tipoPersonaje == PERSONAJE_TREX)
+            {
+                trexVivos++;
+            }
+        }
+    }
+
+    if (trexVivos == 0 && monosVivos > 0)
+    {
+        return 1;
+    }
+    if (monosVivos == 0 && trexVivos > 0)
+    {
+        return 2;   
+    }
+    return 0;
+}
+
+
+void dibujar_ganador(int ganador, ALLEGRO_FONT *fuente, int ANCHO,int ALTO)
+{
+    if (ganador == 1)
+    {
+        al_draw_text(
+            fuente,
+            al_map_rgb(255, 255, 255),
+            ANCHO / 2,
+            (ALTO) / 2,
+            ALLEGRO_ALIGN_CENTER,
+            "GANADOR EQUIPO MONOS"
+        );
+    }
+    else if(ganador == 2 )
+    {
+        al_draw_text(
+            fuente,
+            al_map_rgb(255, 255, 255),
+            ANCHO / 2,
+            (ALTO) / 2,
+            ALLEGRO_ALIGN_CENTER,
+            "GANADOR EQUIPO T-REX"
+        );
+
+    }
 }
